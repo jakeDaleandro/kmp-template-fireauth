@@ -1,54 +1,117 @@
-# KMP-Template
+# KMP Firebase Auth Template
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
-[![build](https://github.com/jaredsburrows/kmp-template/actions/workflows/build.yml/badge.svg)](https://github.com/jaredsburrows/kmp-template/actions/workflows/build.yml)
-[![Twitter Follow](https://img.shields.io/twitter/follow/jaredsburrows.svg?style=social)](https://twitter.com/jaredsburrows)
+A Kotlin Multiplatform template with Firebase Authentication pre-configured for Android and iOS, built with Compose Multiplatform.
 
-A Kotlin Multiplatform template targeting Android, iOS, and Web.
+## What's Included
 
-## Screenshots
+- **Compose Multiplatform UI** shared across Android and iOS
+- **Firebase Authentication** with email/password sign-in and registration
+- **Auth screens** — login, register, and success screen with animated transitions
+- **expect/actual architecture** for platform-specific Firebase initialization
+- **KTLint** for code style enforcement
 
-| Android | iOS | Web |
-| --- | --- | --- |
-| <img width="1280" height="2856" alt="android" src="https://github.com/user-attachments/assets/fe0923fb-7c9c-4a21-bc18-404d5a5eb482" /> | <img width="1179" height="2556" alt="ios" src="https://github.com/user-attachments/assets/7c5554de-77a2-492d-8902-509897e5cd78" /> | <img width="1728" height="1080" alt="web" src="https://github.com/user-attachments/assets/a7859761-4130-4cfc-9701-f3675472df45" /> |
+## Platform Support
+
+| Platform | Status |
+|----------|--------|
+| Android  | ✅ Full Firebase Auth |
+| iOS      | ✅ Full Firebase Auth |
+| Web (WASM) | ⚠️ Firebase not yet supported — stub implementation |
 
 ## Project Structure
 
-- `androidApp/` - Android application
-- `shared/` - Common KMP code shared across all platforms
-- `webApp/` - Web application (JS and WASM targets)
-- `iosApp/` - iOS application (Swift entry point)
+```
+kmp-template/
+├── shared/                         # Shared KMP module
+│   └── src/
+│       ├── commonMain/             # Shared UI and logic (Compose, ViewModels)
+│       │   └── kotlin/
+│       │       ├── auth/
+│       │       │   └── AuthService.kt      # expect class
+│       │       └── ui/
+│       │           └── AuthScreen.kt       # Login, Register, Success screens
+│       ├── firebaseMain/           # Firebase actual implementation (Android + iOS + JS)
+│       │   └── kotlin/auth/
+│       │       └── AuthService.kt
+│       ├── androidMain/            # Android-specific
+│       ├── iosMain/                # iOS entry point
+│       │   └── kotlin/
+│       │       └── MainViewController.kt
+│       ├── jsMain/                 # JS Firebase initialization
+│       │   └── kotlin/auth/
+│       │       └── FirebaseInit.kt
+│       └── wasmJsMain/             # WASM stub
+│           └── kotlin/auth/
+│               └── AuthService.kt
+├── androidApp/                     # Android application module
+└── iosApp/                         # Xcode project
+```
 
-## Build and Run
+## Getting Started
+
+### Prerequisites
+
+- Android Studio Meerkat or later
+- Xcode 15 or later
+- A Firebase project ([console.firebase.google.com](https://console.firebase.google.com))
+
+### Firebase Setup
+
+1. Create a Firebase project and enable **Email/Password** authentication under **Authentication → Sign-in method**
+
+2. **Android** — register your app and download `google-services.json` into `androidApp/`
+
+3. **iOS** — register your app and download `GoogleService-Info.plist`, add it to the `iosApp` target in Xcode
+
+4. **Web** — register a web app and update `shared/src/jsMain/kotlin/auth/FirebaseInit.kt` with your config:
+
+```kotlin
+fun initializeFirebase() {
+    Firebase.initialize(
+        options = FirebaseOptions(
+            applicationId = "YOUR_APP_ID",
+            apiKey = "YOUR_API_KEY",
+            projectId = "YOUR_PROJECT_ID",
+            storageBucket = "YOUR_STORAGE_BUCKET",
+            gcmSenderId = "YOUR_SENDER_ID",
+            authDomain = "YOUR_AUTH_DOMAIN"
+        )
+    )
+}
+```
 
 ### Android
 
-```bash
-./gradlew :androidApp:installDebug
-```
-
-Or use the run configuration in your IDE.
+Open the project in Android Studio and run the `androidApp` configuration.
 
 ### iOS
 
-Open `iosApp/iosApp.xcodeproj` in Xcode and run from there, or use the run configuration in your IDE.
+1. Add the Firebase iOS SDK via Swift Package Manager in Xcode:
+   - **File → Add Package Dependencies**
+   - URL: `https://github.com/firebase/firebase-ios-sdk`
+   - Add **FirebaseAuth** to the `iosApp` target
 
-### Web
+2. Run the `iosApp` scheme in Xcode or from Android Studio with the KMP plugin
 
-**WASM target** (faster, modern browsers):
+## Key Dependencies
 
-```bash
-./gradlew :webApp:wasmJsBrowserDevelopmentRun
-```
+| Dependency | Version |
+|-----------|---------|
+| Kotlin | 2.1.21 |
+| Compose Multiplatform | 1.7.3 |
+| GitLive Firebase KMP | 2.4.0 |
+| AGP | 9.2.1 |
+| Firebase BOM (Android) | 33.7.0 |
 
-**JS target** (broader browser support):
+## Adding New Screens
 
-```bash
-./gradlew :webApp:jsBrowserDevelopmentRun
-```
+All UI lives in `shared/src/commonMain/kotlin`. Add a new composable there and it will render on both Android and iOS automatically. The only platform-specific entry points are:
 
-## Learn More
+- **Android** — `androidApp/src/main/kotlin/.../MainActivity.kt`
+- **iOS** — `shared/src/iosMain/kotlin/MainViewController.kt`
 
-- [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)
-- [Compose Multiplatform](https://github.com/JetBrains/compose-multiplatform/)
-- [Kotlin/Wasm](https://kotl.in/wasm/)
+## Notes
+
+- `google-services.json` and `GoogleService-Info.plist` are excluded from version control — each developer must add their own
+- WASM web support for Firebase is pending upstream support from the GitLive SDK
+- `kotlin.native.cacheKind=none` is set in `gradle.properties` to work around a Kotlin/Native compiler cache bug with Compose Foundation 1.7.3
