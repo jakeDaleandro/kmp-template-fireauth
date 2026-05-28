@@ -2,6 +2,7 @@ plugins {
   alias(libs.plugins.androidApplication)
   alias(libs.plugins.composeCompiler)
   alias(libs.plugins.ktlint)
+  id("com.google.gms.google-services")  // must be here
 }
 
 val jdkVersion =
