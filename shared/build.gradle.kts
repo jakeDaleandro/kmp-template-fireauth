@@ -74,7 +74,7 @@ kotlin {
     }
     androidMain.dependencies {
       api(libs.compose.uiToolingPreview)  // ADD: Android only
-      api(project.dependencies.platform("com.google.firebase:firebase-bom:33.7.0"))
+      api(project.dependencies.platform("com.google.firebase:firebase-bom:34.14.0"))
       api("com.google.firebase:firebase-auth-ktx")
     }
     create("nonAndroidMain") {
